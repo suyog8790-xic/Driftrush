@@ -14,7 +14,10 @@
       background-color: #0a0a20;
       color: #fff;
       overflow: hidden;
+      touch-action: none;
+      user-select: none;
     }
+
     .game-container {
       position: relative;
       width: 100%;
@@ -24,6 +27,7 @@
       box-shadow: 0 0 20px #7f00ff;
       margin-top: 2rem;
     }
+
     .road {
       position: absolute;
       width: 100%;
@@ -34,6 +38,7 @@
         linear-gradient(to bottom, #7f00ff 1px, transparent 1px);
       background-size: 40px 40px;
     }
+
     .car {
       position: absolute;
       width: 50px;
@@ -45,6 +50,7 @@
       transform: translateX(-50%);
       box-shadow: 0 0 20px #ff0033;
     }
+
     .obstacle {
       position: absolute;
       width: 50px;
@@ -53,9 +59,11 @@
       border-radius: 10px;
       box-shadow: 0 0 15px #00f0ff;
     }
+
     .neon-text {
       text-shadow: 0 0 10px #00f0ff, 0 0 20px #00f0ff;
     }
+
     #score {
       position: absolute;
       top: 15px;
@@ -64,6 +72,7 @@
       color: #00f0ff;
       text-shadow: 0 0 10px #00f0ff;
     }
+
     #gameOver {
       position: absolute;
       top: 40%;
@@ -72,10 +81,12 @@
       text-align: center;
       display: none;
     }
+
     #gameOver h2 {
       color: #ff0044;
       text-shadow: 0 0 20px #ff0044;
     }
+
     #restartBtn {
       background-color: #7f00ff;
       padding: 10px 20px;
@@ -84,8 +95,46 @@
       cursor: pointer;
       transition: 0.2s;
     }
+
     #restartBtn:hover {
       background-color: #9f30ff;
+    }
+
+    /* Mobile controls */
+    .controls {
+      display: none;
+      position: fixed;
+      bottom: 5vh;
+      left: 0;
+      width: 100%;
+      justify-content: space-around;
+      z-index: 20;
+    }
+
+    .control-btn {
+      background-color: rgba(127, 0, 255, 0.3);
+      border: 2px solid #7f00ff;
+      color: #fff;
+      padding: 20px 40px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px #7f00ff;
+      font-size: 12px;
+      user-select: none;
+    }
+
+    .control-btn:active {
+      background-color: rgba(127, 0, 255, 0.6);
+      transform: scale(0.95);
+    }
+
+    @media (max-width: 768px) {
+      .controls {
+        display: flex;
+      }
+      .car {
+        width: 40px;
+        height: 80px;
+      }
     }
   </style>
 </head>
@@ -110,8 +159,14 @@
     </div>
   </div>
 
+  <div class="controls">
+    <div id="leftBtn" class="control-btn">⟵ LEFT</div>
+    <div id="rightBtn" class="control-btn">RIGHT ⟶</div>
+  </div>
+
   <footer class="container mx-auto px-4 py-8 border-t border-purple-900 mt-12 text-center text-gray-500 text-xs">
-     S     U     Y     O     G    <br>      S     H     R     E     S     T     H     A
+    S&nbsp;U&nbsp;Y&nbsp;O&nbsp;G <br>
+    S&nbsp;H&nbsp;R&nbsp;E&nbsp;S&nbsp;T&nbsp;H&nbsp;A
   </footer>
 
   <script>
@@ -122,9 +177,10 @@
     const scoreDisplay = document.getElementById('score');
     const gameOverScreen = document.getElementById('gameOver');
     const restartBtn = document.getElementById('restartBtn');
+    const leftBtn = document.getElementById('leftBtn');
+    const rightBtn = document.getElementById('rightBtn');
 
     let carX = window.innerWidth / 2 - 25;
-    let carY = 500;
     let speed = 20;
     let obstacles = [];
     let score = 0;
@@ -194,6 +250,17 @@
       moveCar();
     });
 
+    // Mobile controls
+    leftBtn.addEventListener('touchstart', () => {
+      if (!gameOver && carX > 10) carX -= speed;
+      moveCar();
+    });
+
+    rightBtn.addEventListener('touchstart', () => {
+      if (!gameOver && carX < window.innerWidth - 70) carX += speed;
+      moveCar();
+    });
+
     function gameLoop() {
       if (gameOver) return;
 
@@ -207,6 +274,7 @@
       requestAnimationFrame(gameLoop);
     }
 
+    moveCar();
     gameLoop();
   </script>
 </body>
