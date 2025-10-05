@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drift Rush: Neon Roads</title>
+  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/feather-icons"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+    body {
+      font-family: 'Press Start 2P', cursive;
+      background-color: #0a0a20;
+      color: #fff;
+      overflow: hidden;
+    }
+    .game-container {
+      position: relative;
+      width: 100%;
+      height: 70vh;
+      overflow: hidden;
+      border: 4px solid #7f00ff;
+      box-shadow: 0 0 20px #7f00ff;
+      margin-top: 2rem;
+    }
+    .road {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background-color: #111;
+      background-image:
+        linear-gradient(to right, #333 1px, transparent 1px),
+        linear-gradient(to bottom, #7f00ff 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    .car {
+      position: absolute;
+      width: 50px;
+      height: 100px;
+      background-color: #ff0033;
+      border-radius: 10px;
+      bottom: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+      box-shadow: 0 0 20px #ff0033;
+    }
+    .obstacle {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      background-color: #00f0ff;
+      border-radius: 10px;
+      box-shadow: 0 0 15px #00f0ff;
+    }
+    .neon-text {
+      text-shadow: 0 0 10px #00f0ff, 0 0 20px #00f0ff;
+    }
+    #score {
+      position: absolute;
+      top: 15px;
+      left: 20px;
+      font-size: 14px;
+      color: #00f0ff;
+      text-shadow: 0 0 10px #00f0ff;
+    }
+    #gameOver {
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      display: none;
+    }
+    #gameOver h2 {
+      color: #ff0044;
+      text-shadow: 0 0 20px #ff0044;
+    }
+    #restartBtn {
+      background-color: #7f00ff;
+      padding: 10px 20px;
+      border-radius: 10px;
+      margin-top: 10px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    #restartBtn:hover {
+      background-color: #9f30ff;
+    }
+  </style>
+</head>
+<body>
+  <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
+    <a href="index.html" class="text-xl text-purple-300 hover:text-purple-200 flex items-center">
+      <i data-feather="chevron-left" class="mr-2"></i> BACK
+    </a>
+    <div class="text-xl neon-text">Drift Rush</div>
+    <div class="w-8"></div>
+  </nav>
+
+  <div class="container mx-auto px-4">
+    <div class="game-container">
+      <div class="road" id="road"></div>
+      <div class="car" id="car"></div>
+      <div id="score">SCORE: 0</div>
+      <div id="gameOver">
+        <h2>GAME OVER</h2>
+        <div id="restartBtn">RESTART</div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="container mx-auto px-4 py-8 border-t border-purple-900 mt-12 text-center text-gray-500 text-xs">
+     S     U     Y     O     G    <br>      S     H     R     E     S     T     H     A
+  </footer>
+
+  <script>
+    feather.replace();
+
+    const car = document.getElementById('car');
+    const road = document.getElementById('road');
+    const scoreDisplay = document.getElementById('score');
+    const gameOverScreen = document.getElementById('gameOver');
+    const restartBtn = document.getElementById('restartBtn');
+
+    let carX = window.innerWidth / 2 - 25;
+    let carY = 500;
+    let speed = 20;
+    let obstacles = [];
+    let score = 0;
+    let gameOver = false;
+    let position = 0;
+
+    function createObstacle() {
+      const obstacle = document.createElement('div');
+      obstacle.classList.add('obstacle');
+      obstacle.style.top = '0px';
+      obstacle.style.left = `${Math.random() * (window.innerWidth - 80)}px`;
+      road.appendChild(obstacle);
+      obstacles.push(obstacle);
+    }
+
+    function moveObstacles() {
+      obstacles.forEach((obs, index) => {
+        let top = parseInt(obs.style.top);
+        obs.style.top = top + 5 + 'px';
+
+        if (top > window.innerHeight) {
+          obs.remove();
+          obstacles.splice(index, 1);
+          score++;
+        }
+
+        // Collision detection
+        const carRect = car.getBoundingClientRect();
+        const obsRect = obs.getBoundingClientRect();
+        if (
+          carRect.x < obsRect.x + obsRect.width &&
+          carRect.x + carRect.width > obsRect.x &&
+          carRect.y < obsRect.y + obsRect.height &&
+          carRect.y + carRect.height > obsRect.y
+        ) {
+          endGame();
+        }
+      });
+    }
+
+    function endGame() {
+      gameOver = true;
+      gameOverScreen.style.display = 'block';
+    }
+
+    function restartGame() {
+      gameOver = false;
+      score = 0;
+      scoreDisplay.textContent = 'SCORE: 0';
+      obstacles.forEach(o => o.remove());
+      obstacles = [];
+      carX = window.innerWidth / 2 - 25;
+      gameOverScreen.style.display = 'none';
+      gameLoop();
+    }
+
+    restartBtn.addEventListener('click', restartGame);
+
+    function moveCar() {
+      car.style.left = `${carX}px`;
+    }
+
+    document.addEventListener('keydown', e => {
+      if (gameOver) return;
+      if (e.key === 'ArrowLeft' && carX > 10) carX -= speed;
+      if (e.key === 'ArrowRight' && carX < window.innerWidth - 70) carX += speed;
+      moveCar();
+    });
+
+    function gameLoop() {
+      if (gameOver) return;
+
+      position += 4;
+      road.style.backgroundPosition = `0 ${position}px`;
+
+      if (Math.random() < 0.02) createObstacle();
+      moveObstacles();
+
+      scoreDisplay.textContent = `SCORE: ${score}`;
+      requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
+  </script>
+</body>
+</html>
